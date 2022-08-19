@@ -1,5 +1,4 @@
 use clap::{Parser, Subcommand};
-use redis::{self, aio::ConnectionManager};
 use tracing_subscriber::EnvFilter;
 
 use near_jsonrpc_client::{methods, JsonRpcClient};
@@ -18,9 +17,6 @@ use near_lake_framework::near_indexer_primitives::types::{BlockReference, Finali
     next_line_help(true)
 )]
 pub(crate) struct Opts {
-    /// Connection string to connect to the Redis instance for cache. Default: "redis://127.0.0.1"
-    #[clap(long, default_value = "redis://127.0.0.1", env)]
-    pub redis_connection_string: String,
     /// Connection string to connect to the PostgreSQL Database to fetch AlertRules from
     #[clap(long, env)]
     pub database_url: String,
@@ -52,6 +48,7 @@ pub enum ChainId {
     Testnet(StartOptions),
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Subcommand, Debug, Clone)]
 pub enum StartOptions {
     /// Start from specific block height
@@ -99,7 +96,7 @@ impl Opts {
 }
 
 impl Opts {
-    pub async fn to_lake_config(self) -> near_lake_framework::LakeConfig {
+    pub async fn to_lake_config(&self) -> near_lake_framework::LakeConfig {
         let s3_config = aws_sdk_s3::config::Builder::from(&self.lake_aws_sdk_config()).build();
 
         let config_builder = near_lake_framework::LakeConfigBuilder::default().s3_config(s3_config);
@@ -107,10 +104,10 @@ impl Opts {
         match &self.chain_id {
             ChainId::Mainnet(_) => config_builder
                 .mainnet()
-                .start_block_height(get_start_block_height(&self).await),
+                .start_block_height(get_start_block_height(self).await),
             ChainId::Testnet(_) => config_builder
                 .testnet()
-                .start_block_height(get_start_block_height(&self).await),
+                .start_block_height(get_start_block_height(self).await),
         }
         .build()
         .expect("Failed to build LakeConfig")
@@ -121,21 +118,11 @@ async fn get_start_block_height(opts: &Opts) -> u64 {
     match opts.start_options() {
         StartOptions::FromBlock { height } => *height,
         StartOptions::FromInterruption => {
-            let redis_connection_manager = match connect(&opts.redis_connection_string).await {
-                Ok(connection_manager) => connection_manager,
-                Err(err) => {
-                    tracing::warn!(
-                        target: "alertexer",
-                        "Failed to connect to Redis to get last synced block, failing to the latest...\n{:#?}",
-                        err,
-                    );
-                    return final_block_height(opts).await;
-                }
-            };
-            let last_indexed_block: u64 = match redis::cmd("GET")
-                .arg("last_indexed_block")
-                .query_async(&mut redis_connection_manager.clone())
-                .await
+            let pool = crate::models::establish_connection(&opts.database_url);
+            let last_indexed_block: u64 = match crate::db_adapters::blocks::latest_block_height(
+                &pool,
+            )
+            .await
             {
                 Ok(last_indexed_block) => {
                     if let Some(last_indexed_block) = last_indexed_block {
@@ -147,7 +134,7 @@ async fn get_start_block_height(opts: &Opts) -> u64 {
                 Err(err) => {
                     tracing::warn!(
                         target: "alertexer",
-                        "Failed to get last indexer block from Redis. Failing to the latest one...\n{:#?}",
+                        "Failed to get last indexer block from Database. Failing to the latest one...\n{:#?}",
                         err
                     );
                     final_block_height(opts).await
@@ -200,15 +187,4 @@ async fn final_block_height(opts: &Opts) -> u64 {
     let latest_block = client.call(request).await.unwrap();
 
     latest_block.header.height
-}
-
-async fn get_redis_client(redis_connection_str: &str) -> redis::Client {
-    redis::Client::open(redis_connection_str).expect("can create redis client")
-}
-
-pub(crate) async fn connect(redis_connection_str: &str) -> anyhow::Result<ConnectionManager> {
-    Ok(get_redis_client(redis_connection_str)
-        .await
-        .get_tokio_connection_manager()
-        .await?)
 }

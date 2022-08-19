@@ -13,10 +13,6 @@ WARNING: We may evolve the data schemas, so make sure you follow the release not
 
 NOTE: Please, keep in mind that the access to the database is shared across everyone in the world, so it is better to make sure you limit the amount of queris and individual queries are efficient.
 
-## NEAR Indexer for Explorer Lake Requirements
-
-This indexer requires an instance of Redis to use for the cache. Please ensure you're running one and provide the credentials via key `--redis-connection-string`
-
 ## Self-hosting
 
 The final setup consists of the following components:

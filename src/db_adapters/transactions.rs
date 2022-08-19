@@ -87,12 +87,12 @@ async fn collect_converted_to_receipt_ids(
     pool: &actix_diesel::Database<PgConnection>,
     block_hash: &near_lake_framework::near_indexer_primitives::CryptoHash,
 ) -> anyhow::Result<Vec<String>> {
-    Ok(schema::transactions::table
+    schema::transactions::table
         .select(schema::transactions::dsl::converted_into_receipt_id)
         .filter(schema::transactions::dsl::included_in_block_hash.eq(block_hash.to_string()))
         .get_results_async::<String>(pool)
         .await
-        .context("DB Error")?)
+        .context("DB Error")
 }
 
 async fn store_chunk_transactions(

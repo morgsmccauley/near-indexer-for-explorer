@@ -41,7 +41,6 @@ pub type ReceiptsCache =
 
 async fn handle_message(
     pool: &actix_diesel::Database<PgConnection>,
-    redis_connection_manager: &redis::aio::ConnectionManager,
     streamer_message: near_lake_framework::near_indexer_primitives::StreamerMessage,
     strict_mode: bool,
     receipts_cache: ReceiptsCache,
@@ -148,11 +147,6 @@ async fn handle_message(
         )?;
     }
 
-    let _res: Result<(), redis::RedisError> = redis::cmd("SET")
-        .arg("last_indexed_block")
-        .arg(streamer_message.block.header.height)
-        .query_async(&mut redis_connection_manager.clone())
-        .await;
     Ok(())
 }
 
@@ -173,7 +167,6 @@ async fn main() -> anyhow::Result<()> {
     let pool = models::establish_connection(&opts.database_url);
 
     let strict_mode = !opts.non_strict_mode;
-    let redis_connection_manager = configs::connect(&opts.redis_connection_string).await?;
 
     // We want to prevent unnecessary SELECT queries to the database to find
     // the Transaction hash for the Receipt.
@@ -198,7 +191,6 @@ async fn main() -> anyhow::Result<()> {
             );
             handle_message(
                 &pool,
-                &redis_connection_manager,
                 streamer_message,
                 strict_mode,
                 std::sync::Arc::clone(&receipts_cache),
