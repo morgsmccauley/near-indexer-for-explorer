@@ -24,11 +24,10 @@ pub(crate) async fn store_transactions(
             tried_to_insert_transactions_count += chunk.transactions.len();
             store_chunk_transactions(
                 pool,
-                chunk
-                    .transactions
-                    .iter()
-                    .enumerate()
-                    .collect::<Vec<(usize, &near_lake_framework::near_indexer_primitives::IndexerTransactionWithOutcome)>>(),
+                chunk.transactions.iter().enumerate().collect::<Vec<(
+                    usize,
+                    &near_lake_framework::near_indexer_primitives::IndexerTransactionWithOutcome,
+                )>>(),
                 &chunk.header.chunk_hash,
                 block_hash,
                 block_timestamp,
@@ -98,7 +97,10 @@ async fn collect_converted_to_receipt_ids(
 
 async fn store_chunk_transactions(
     pool: &actix_diesel::Database<PgConnection>,
-    transactions: Vec<(usize, &near_lake_framework::near_indexer_primitives::IndexerTransactionWithOutcome)>,
+    transactions: Vec<(
+        usize,
+        &near_lake_framework::near_indexer_primitives::IndexerTransactionWithOutcome,
+    )>,
     chunk_hash: &near_lake_framework::near_indexer_primitives::CryptoHash,
     block_hash: &near_lake_framework::near_indexer_primitives::CryptoHash,
     block_timestamp: u64,
