@@ -16,3 +16,4 @@ const MAX_DELAY_TIME: std::time::Duration = std::time::Duration::from_secs(120);
 const INTERVAL: std::time::Duration = std::time::Duration::from_millis(100);
 // TODO should be configurable
 const INDEXER_FOR_EXPLORER: &str = "indexer_for_explorer";
+const AGGREGATED: &str = "aggregated";
