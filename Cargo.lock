@@ -836,6 +836,19 @@ dependencies = [
 [[package]]
 name = "circulating_supply"
 version = "0.1.0"
+dependencies = [
+ "actix",
+ "anyhow",
+ "bigdecimal",
+ "chrono",
+ "database",
+ "dotenv",
+ "near-primitives",
+ "near-sdk",
+ "tokio",
+ "tracing",
+ "uint 0.8.5",
+]
 
 [[package]]
 name = "clap"
@@ -1617,7 +1630,6 @@ dependencies = [
  "aws-sdk-s3",
  "aws-types",
  "borsh 0.7.2",
- "chrono",
  "clap",
  "database",
  "dotenv",
@@ -1626,13 +1638,11 @@ dependencies = [
  "near-jsonrpc-client",
  "near-lake-framework",
  "near-primitives",
- "near-sdk",
  "openssl-probe",
  "r2d2",
  "tokio-stream",
  "tracing",
  "tracing-subscriber",
- "uint 0.8.5",
 ]
 
 [[package]]

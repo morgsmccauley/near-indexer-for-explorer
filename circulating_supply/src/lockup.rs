@@ -4,7 +4,7 @@ use actix::Addr;
 use anyhow::Context;
 
 use near_client::{Query, ViewClientActor};
-use near_indexer::near_primitives;
+use near_primitives;
 use near_sdk::borsh::BorshDeserialize;
 use near_sdk::json_types::{U128, U64};
 

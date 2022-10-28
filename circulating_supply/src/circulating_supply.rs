@@ -8,18 +8,18 @@ use bigdecimal::{BigDecimal, ToPrimitive};
 use chrono::NaiveDateTime;
 use tracing::{error, info, warn};
 
-use near_indexer::near_primitives;
+use near_primitives;
 
 use crate::{account_details, circulating_supply};
-use db::actix_diesel::Database;
-use db::db_adapters::accounts;
-use db::db_adapters::aggregated::circulating_supply::{
+use database::adapters::accounts;
+use database::adapters::aggregated::circulating_supply::{
     add_circulating_supply, get_precomputed_circulating_supply_for_timestamp,
 };
-use db::db_adapters::blocks;
-use db::diesel::PgConnection;
-use db::models;
-use db::models::aggregated::circulating_supply::CirculatingSupply;
+use database::adapters::blocks;
+use database::models;
+use database::models::aggregated::circulating_supply::CirculatingSupply;
+use database::Database;
+use database::PgConnection;
 
 use crate::lockup;
 

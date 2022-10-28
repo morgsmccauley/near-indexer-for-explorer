@@ -1,5 +1,4 @@
 use actix::Addr;
-use anyhow::Context;
 
 use near_client::{Query, ViewClientActor};
 use near_indexer::near_primitives;
