@@ -12,7 +12,7 @@ pub use receipts::{
 };
 pub use transactions::{Transaction, TransactionAction};
 
-pub(crate) use serializers::extract_action_type_and_value_from_action_view;
+pub use serializers::extract_action_type_and_value_from_action_view;
 
 pub mod access_keys;
 pub mod account_changes;
@@ -26,7 +26,7 @@ pub mod receipts;
 mod serializers;
 pub mod transactions;
 
-pub(crate) fn establish_connection(database_url: &str) -> actix_diesel::Database<PgConnection> {
+pub fn establish_connection(database_url: &str) -> actix_diesel::Database<PgConnection> {
     actix_diesel::Database::builder()
         .pool_max_size(30)
         .open(database_url)

@@ -9,7 +9,7 @@ use crate::models::enums::ActionKind;
 /// We want to store permission field more explicitly so we are making copy of nearcore struct
 /// to change serde parameters of serialization.
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub(crate) struct AccessKeyView {
+pub struct AccessKeyView {
     pub nonce: near_lake_framework::near_indexer_primitives::types::Nonce,
     pub permission: AccessKeyPermissionView,
 }
@@ -33,7 +33,7 @@ impl From<&near_lake_framework::near_indexer_primitives::views::AccessKeyView> f
     content = "permission_details",
     rename_all = "SCREAMING_SNAKE_CASE"
 )]
-pub(crate) enum AccessKeyPermissionView {
+pub enum AccessKeyPermissionView {
     FunctionCall {
         #[serde(with = "option_u128_dec_format")]
         allowance: Option<near_lake_framework::near_indexer_primitives::types::Balance>,
@@ -69,7 +69,7 @@ impl From<near_lake_framework::near_indexer_primitives::views::AccessKeyPermissi
     }
 }
 
-pub(crate) fn extract_action_type_and_value_from_action_view(
+pub fn extract_action_type_and_value_from_action_view(
     action_view: &near_lake_framework::near_indexer_primitives::views::ActionView,
 ) -> (crate::models::enums::ActionKind, serde_json::Value) {
     match action_view {

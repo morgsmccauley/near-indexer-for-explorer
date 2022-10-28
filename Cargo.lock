@@ -1051,6 +1051,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "database"
+version = "0.1.0"
+dependencies = [
+ "actix-diesel",
+ "anyhow",
+ "base64 0.11.0",
+ "bigdecimal",
+ "cached",
+ "diesel",
+ "diesel-derive-enum",
+ "futures",
+ "hex",
+ "near-crypto",
+ "near-lake-framework",
+ "near-primitives",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "derive_builder"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1585,34 +1608,23 @@ name = "indexer-explorer-lake"
 version = "0.10.1"
 dependencies = [
  "actix",
- "actix-diesel",
  "actix-rt",
  "anyhow",
  "aws-sdk-s3",
  "aws-types",
- "base64 0.11.0",
- "bigdecimal",
  "borsh 0.7.2",
- "cached",
  "chrono",
  "clap",
- "diesel",
- "diesel-derive-enum",
+ "database",
  "dotenv",
  "futures",
- "hex",
  "itertools",
- "near-crypto",
  "near-jsonrpc-client",
  "near-lake-framework",
  "near-primitives",
  "near-sdk",
- "num-traits",
  "openssl-probe",
  "r2d2",
- "serde",
- "serde_json",
- "tokio",
  "tokio-stream",
  "tracing",
  "tracing-subscriber",

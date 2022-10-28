@@ -119,7 +119,7 @@ async fn get_start_block_height(opts: &Opts) -> u64 {
         StartOptions::FromBlock { height } => *height,
         StartOptions::FromInterruption => {
             let pool = crate::models::establish_connection(&opts.database_url);
-            let last_indexed_block: u64 = match crate::db_adapters::blocks::latest_block_height(
+            let last_indexed_block: u64 = match database::adapters::blocks::latest_block_height(
                 &pool,
             )
             .await

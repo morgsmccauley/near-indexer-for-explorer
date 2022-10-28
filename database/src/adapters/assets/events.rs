@@ -2,11 +2,11 @@ use actix_diesel::{AsyncError, Database};
 use diesel::PgConnection;
 use tracing::warn;
 
-use crate::db_adapters::assets;
+use crate::adapters::assets;
 
 use super::event_types;
 
-pub(crate) async fn store_events(
+pub async fn store_events(
     pool: &Database<PgConnection>,
     streamer_message: &near_lake_framework::near_indexer_primitives::StreamerMessage,
 ) -> anyhow::Result<()> {
@@ -17,7 +17,7 @@ pub(crate) async fn store_events(
     futures::future::try_join_all(futures).await.map(|_| ())
 }
 
-pub(crate) async fn detect_db_error(
+pub async fn detect_db_error(
     async_error: &AsyncError<diesel::result::Error>,
     duplicate_constraint_name: &str,
     broken_data_constraint_name: &str,

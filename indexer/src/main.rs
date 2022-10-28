@@ -1,58 +1,32 @@
 use clap::Parser;
-#[macro_use]
-extern crate diesel;
 
-pub use cached::SizedCache;
-use diesel::PgConnection;
+use database::{models, PgConnection};
 use futures::future::try_join_all;
 use futures::{try_join, StreamExt};
-use tokio::sync::Mutex;
 use tracing::{debug, info};
 
 use crate::configs::Opts;
 
 mod configs;
-mod db_adapters;
-mod models;
-mod schema;
-#[macro_use]
-mod retriable;
 
 // Categories for logging
 const INDEXER_FOR_EXPLORER: &str = "indexer_for_explorer";
 // const AGGREGATED: &str = "aggregated";
 
-const INTERVAL: std::time::Duration = std::time::Duration::from_millis(100);
-const MAX_DELAY_TIME: std::time::Duration = std::time::Duration::from_secs(120);
-
-#[derive(Clone, Hash, PartialEq, Eq, Debug)]
-pub enum ReceiptOrDataId {
-    ReceiptId(near_lake_framework::near_indexer_primitives::CryptoHash),
-    DataId(near_lake_framework::near_indexer_primitives::CryptoHash),
-}
-// Creating type aliases to make HashMap types for cache more explicit
-pub type ParentTransactionHashString = String;
-// Introducing a simple cache for Receipts to find their parent Transactions without
-// touching the database
-// The key is ReceiptID
-// The value is TransactionHash (the very parent of the Receipt)
-pub type ReceiptsCache =
-    std::sync::Arc<Mutex<SizedCache<ReceiptOrDataId, ParentTransactionHashString>>>;
-
 async fn handle_message(
-    pool: &actix_diesel::Database<PgConnection>,
+    pool: &database::Database<PgConnection>,
     streamer_message: near_lake_framework::near_indexer_primitives::StreamerMessage,
     strict_mode: bool,
-    receipts_cache: ReceiptsCache,
+    receipts_cache: database::cache::ReceiptsCache,
 ) -> anyhow::Result<()> {
     debug!(
         target: INDEXER_FOR_EXPLORER,
         "ReceiptsCache #{} \n {:#?}", streamer_message.block.header.height, &receipts_cache
     );
-    db_adapters::blocks::store_block(pool, &streamer_message.block).await?;
+    database::adapters::blocks::store_block(pool, &streamer_message.block).await?;
 
     // Chunks
-    db_adapters::chunks::store_chunks(
+    database::adapters::chunks::store_chunks(
         pool,
         &streamer_message.shards,
         &streamer_message.block.header.hash,
@@ -60,7 +34,7 @@ async fn handle_message(
     .await?;
 
     // Transactions
-    let transactions_future = db_adapters::transactions::store_transactions(
+    let transactions_future = database::adapters::transactions::store_transactions(
         pool,
         &streamer_message.shards,
         &streamer_message.block.header.hash,
@@ -70,7 +44,7 @@ async fn handle_message(
     );
 
     // Receipts
-    let receipts_future = db_adapters::receipts::store_receipts(
+    let receipts_future = database::adapters::receipts::store_receipts(
         pool,
         &streamer_message.shards,
         &streamer_message.block.header.hash,
@@ -87,17 +61,18 @@ async fn handle_message(
     try_join!(transactions_future, receipts_future)?;
 
     // ExecutionOutcomes
-    let execution_outcomes_future = db_adapters::execution_outcomes::store_execution_outcomes(
-        pool,
-        &streamer_message.shards,
-        streamer_message.block.header.timestamp,
-        std::sync::Arc::clone(&receipts_cache),
-    );
+    let execution_outcomes_future =
+        database::adapters::execution_outcomes::store_execution_outcomes(
+            pool,
+            &streamer_message.shards,
+            streamer_message.block.header.timestamp,
+            std::sync::Arc::clone(&receipts_cache),
+        );
 
     // Accounts
     let accounts_future = async {
         let futures = streamer_message.shards.iter().map(|shard| {
-            db_adapters::accounts::handle_accounts(
+            database::adapters::accounts::handle_accounts(
                 pool,
                 &shard.receipt_execution_outcomes,
                 streamer_message.block.header.height,
@@ -108,13 +83,14 @@ async fn handle_message(
     };
 
     // Event-based entities (FT, NFT)
-    let assets_events_future = db_adapters::assets::events::store_events(pool, &streamer_message);
+    let assets_events_future =
+        database::adapters::assets::events::store_events(pool, &streamer_message);
 
     if strict_mode {
         // AccessKeys
         let access_keys_future = async {
             let futures = streamer_message.shards.iter().map(|shard| {
-                db_adapters::access_keys::handle_access_keys(
+                database::adapters::access_keys::handle_access_keys(
                     pool,
                     &shard.receipt_execution_outcomes,
                     streamer_message.block.header.height,
@@ -125,7 +101,7 @@ async fn handle_message(
         };
 
         // StateChange related to Account
-        let account_changes_future = db_adapters::account_changes::store_account_changes(
+        let account_changes_future = database::adapters::account_changes::store_account_changes(
             pool,
             &streamer_message.shards,
             &streamer_message.block.header.hash,
@@ -173,8 +149,8 @@ async fn main() -> anyhow::Result<()> {
     // Later we need to find the Receipt which is a parent to underlying Receipts.
     // Receipt ID will of the child will be stored as key and parent Transaction hash/Receipt ID
     // will be stored as a value
-    let receipts_cache: ReceiptsCache =
-        std::sync::Arc::new(Mutex::new(SizedCache::with_size(100_000)));
+    let receipts_cache: database::cache::ReceiptsCache =
+        database::cache::initialise_receipts_cache(100_000);
 
     let config: near_lake_framework::LakeConfig = opts.to_lake_config().await;
     let (sender, stream) = near_lake_framework::streamer(config);
