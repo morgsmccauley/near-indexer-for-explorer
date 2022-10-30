@@ -1,9 +1,8 @@
 use std::time::Duration;
 
-use actix::Addr;
 use anyhow::Context;
 
-use near_client::{Query, ViewClientActor};
+use near_jsonrpc_client::JsonRpcClient;
 use near_primitives;
 use near_sdk::borsh::BorshDeserialize;
 use near_sdk::json_types::{U128, U64};
@@ -17,7 +16,7 @@ use super::lockup_types::{
 pub(super) const TRANSFERS_ENABLED: Duration = Duration::from_nanos(1602614338293769340);
 
 pub(super) async fn get_lockup_contract_state(
-    view_client: &Addr<ViewClientActor>,
+    rpc_client: &JsonRpcClient,
     account_id: &near_primitives::types::AccountId,
     block_height: &near_primitives::types::BlockHeight,
 ) -> anyhow::Result<LockupContract> {
@@ -29,26 +28,20 @@ pub(super) async fn get_lockup_contract_state(
         prefix: vec![].into(),
         include_proof: false,
     };
-    let query = Query::new(block_reference, request);
+    let query = near_jsonrpc_client::methods::query::RpcQueryRequest {
+        block_reference,
+        request,
+    };
 
-    let state_response = view_client
-        .send(query)
-        .await
-        .with_context(|| {
-            format!(
-                "Failed to deliver ViewState for lockup contract {}, block_height {}",
-                account_id, block_height
-            )
-        })?
-        .with_context(|| {
-            format!(
-                "Invalid ViewState query for lockup contract {}, block_height {}",
-                account_id, block_height
-            )
-        })?;
+    let state_response = rpc_client.call(query).await.with_context(|| {
+        format!(
+            "Failed to deliver ViewState for lockup contract {}, block_height {}",
+            account_id, block_height
+        )
+    })?;
 
     let view_state_result = match state_response.kind {
-        near_primitives::views::QueryResponseKind::ViewState(x) => x,
+        near_jsonrpc_primitives::types::query::QueryResponseKind::ViewState(state) => state,
         _ => {
             anyhow::bail!(
                 "Failed to extract ViewState response for lockup contract {}, block_height {}",

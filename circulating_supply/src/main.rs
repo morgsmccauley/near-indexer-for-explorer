@@ -1,3 +1,5 @@
+use near_jsonrpc_client::JsonRpcClient;
+
 mod account_details;
 mod circulating_supply;
 mod lockup;
@@ -12,9 +14,11 @@ fn main() {
         std::env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
     let pool = database::models::establish_connection(&database_url);
 
+    let rpc_client = JsonRpcClient::connect("https://archival-rpc.mainnet.near.org");
+
     // if indexer.near_config().genesis.config.chain_id == "localnet" {
     actix::spawn(circulating_supply::run_circulating_supply_computation(
-        view_client,
+        rpc_client, pool,
     ));
     // }
 }
