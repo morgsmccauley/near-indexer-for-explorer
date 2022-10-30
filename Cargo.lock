@@ -1084,7 +1084,7 @@ dependencies = [
  "hex",
  "near-crypto 0.14.0",
  "near-lake-framework",
- "near-primitives 0.14.0",
+ "near-primitives 0.15.0",
  "num-traits",
  "serde",
  "serde_json",

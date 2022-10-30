@@ -9,7 +9,7 @@ edition = "2021"
 actix = "0.13.0"
 bigdecimal = "=0.1.0"
 uint = { version = "0.8.3", default-features = false }
-near-primitives = "0.14"
+near-primitives = "0.15"
 anyhow = "1.0.51"
 chrono = "0.4.19"
 tracing = "0.1.13"

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use near_lake_framework::near_indexer_primitives::views::ActionView;
-use near_primitives::serialize::option_u128_dec_format;
+use near_primitives::serialize::dec_format;
 
 use crate::models::enums::ActionKind;
 
@@ -35,7 +35,7 @@ impl From<&near_lake_framework::near_indexer_primitives::views::AccessKeyView> f
 )]
 pub enum AccessKeyPermissionView {
     FunctionCall {
-        #[serde(with = "option_u128_dec_format")]
+        #[serde(with = "dec_format")]
         allowance: Option<near_lake_framework::near_indexer_primitives::types::Balance>,
         receiver_id: String,
         method_names: Vec<String>,
