@@ -7,7 +7,8 @@ mod lockup_types;
 
 const AGGREGATED: &str = "aggregated";
 
-fn main() {
+#[actix::main]
+async fn main() {
     dotenv::dotenv().ok();
 
     let database_url =
@@ -20,5 +21,6 @@ fn main() {
     actix::spawn(circulating_supply::run_circulating_supply_computation(
         rpc_client, pool,
     ));
+    circulating_supply::run_circulating_supply_computation(rpc_client, pool).await;
     // }
 }
