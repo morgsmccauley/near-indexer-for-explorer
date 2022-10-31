@@ -44,6 +44,7 @@ pub(super) async fn run_circulating_supply_computation(
             .expect("Time went backwards");
 
         if now < day_to_compute {
+            info!(target: crate::AGGREGATED, "now < day_to_compute");
             tokio::time::sleep_until(tokio::time::Instant::now().add(day_to_compute.sub(now)))
                 .await;
         }
