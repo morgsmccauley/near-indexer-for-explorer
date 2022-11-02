@@ -4,7 +4,6 @@ use anyhow::Context;
 
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::query::QueryResponseKind;
-use near_lake_framework::near_indexer_primitives;
 use near_sdk::borsh::BorshDeserialize;
 use near_sdk::json_types::{U128, U64};
 

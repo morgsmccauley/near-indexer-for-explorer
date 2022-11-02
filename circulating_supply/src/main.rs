@@ -8,7 +8,6 @@ use chrono::NaiveDateTime;
 use tracing::{error, info, warn};
 
 use near_jsonrpc_client::{methods, JsonRpcClient};
-use near_lake_framework::near_indexer_primitives;
 
 use explorer_database::{adapters, models};
 

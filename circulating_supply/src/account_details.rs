@@ -2,7 +2,6 @@ use anyhow::Context;
 
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::query::QueryResponseKind;
-use near_lake_framework::near_indexer_primitives;
 
 pub(crate) async fn get_account_balance(
     rpc_client: &JsonRpcClient,
