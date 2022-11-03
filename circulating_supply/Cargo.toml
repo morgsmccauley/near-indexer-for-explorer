@@ -9,6 +9,7 @@ edition = "2021"
 actix = "0.13.0"
 anyhow = "1.0.51"
 bigdecimal = "=0.1.0"
+base64 = "0.11"
 chrono = "0.4.19"
 dotenv = "0.15.0"
 # syn version conflict, replace with crates.io version once released
