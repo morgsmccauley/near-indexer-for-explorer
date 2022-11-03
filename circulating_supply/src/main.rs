@@ -83,7 +83,7 @@ pub async fn run_circulating_supply_computation(
             Err(err) => {
                 error!(
                     target: crate::CIRCULATING_SUPPLY,
-                    "Failed to compute circulating supply for {}: {}. Retry in {} hours",
+                    "Failed to compute circulating supply for {}: {:#}. Retry in {} hours",
                     NaiveDateTime::from_timestamp(day_to_compute.as_secs() as i64, 0).date(),
                     err,
                     RETRY_DURATION.as_secs() / 60 / 60,
