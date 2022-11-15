@@ -1,5 +1,5 @@
 [package]
-name = "circulating_supply"
+name = "circulating-supply"
 version = "0.1.0"
 edition = "2021"
 
